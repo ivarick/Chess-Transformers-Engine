@@ -58,9 +58,10 @@ PIECE_TO_INDEX = {
     'P': 0, 'N': 1, 'B': 2, 'R': 3, 'Q': 4, 'K': 5,
     'p': 6, 'n': 7, 'b': 8, 'r': 9, 'q': 10, 'k': 11
 }
-
-class ChessDataset(Dataset):
-    def __init__(self, pgn_files, max_games_per_file=300, use_enhanced=True, preload_in_memory=True):
+# THE DATASET IS A PGN FILES
+class ChessDataset(Dataset): #index 2 million games from the chosen dataset 
+    def __init__(self, pgn_files, max_games_per_file=2000000, use_enhanced=True, preload_in_memory=True): 
+        # for faster indexing and efficient memory use
         self.pgn_files = pgn_files
         self.max_games_per_file = max_games_per_file
         self.use_enhanced = use_enhanced
@@ -512,4 +513,5 @@ model = model.to(device)
 model.train() 
 
 pgn_files = ["lichess_db_standard_rated_2014-08.pgn"]  
+
 train_model(model, pgn_files, epochs=10, learning_rate=0.00001, batch_size=32, shuffle=True)
