@@ -1,32 +1,70 @@
-#Chess engine using the transformers architecture trained on 2 million games (PGN files).
+# **Chess Transformer Engine**
+### A transformer-based chess engine trained on 2 million PGN games
 
-Today's chess engines are shifting to the transformers-based models, we witness that clearly in Leela Chess Zero that switched from residual networks to using a transformer-based architecture.
+## Overview
 
-And this traces back to the limitations of CNNs in chess.
+Modern chess engines are rapidly transitioning from convolutional neural networks (CNNs) to transformer-based architectures. This shift is exemplified by Leela Chess Zero's adoption of transformers, driven by fundamental architectural advantages for chess position evaluation.
 
-CNNs process information through local convolution operations. Even with many layers and residual connections, they primarily capture local patterns on the chess board. To "see" relationships between pieces on opposite sides of the board requires information to propagate through many layers.
+## Why Transformers Over CNNs?
 
-And the huge advantages of Transformers as well. Transformers use self-attention mechanisms that allow every square on the board to directly attend to every other square in a single layer. This is crucial for chess.
+### Limitations of CNNs in Chess
 
-A better long range dependecies, chess positions often involve tactics and strategies that connect distant pieces. Transformers excel at modeling these long-range dependencies.
+CNNs process information through local convolution operations, which inherently limits their ability to capture global board patterns:
 
-Now the trade-off in using Transformers instead of CNNs is the amount of computation needed, and requiring more memory and processing power. And even a larger dataset.
+- **Local Pattern Recognition**: Even with deep networks and residual connections, CNNs primarily identify local piece configurations
+- **Limited Spatial Awareness**: Understanding relationships between distant pieces requires information to propagate through numerous layers, creating a computational bottleneck
+- **Sequential Information Flow**: Long-range tactical patterns suffer from the layered nature of convolutional processing
 
-However, for top-level chess engines, this trade-off is worth it for better positional understanding.
+### Advantages of Transformers
 
+Transformers revolutionize chess position evaluation through their self-attention mechanism:
 
-Now in our used model we have:
+- **Global Board Vision**: Every square can directly attend to every other square in a single layer, enabling immediate awareness of the entire position
+- **Superior Long-Range Dependencies**: Chess tactics and strategies frequently involve distant piece coordination—transformers naturally excel at modeling these relationships
+- **Parallel Processing**: Multi-head attention allows simultaneous evaluation of multiple strategic patterns
 
-![alt text](params.png)
+### The Trade-off
 
-When testing the model on finding the best move on the given position:
+Transformers come with increased computational requirements:
+- Higher memory consumption
+- Greater processing power demands
+- Larger training datasets needed
 
-![alt text](position.png)
+However, for competitive chess engines, these costs are justified by the substantial gains in positional understanding and tactical accuracy.
 
-Which was a checkmate in one move for black (Ne2#). Chess players recognize this tricky move and it is called a "smothered mate". And yet, our model has successfully found it.
+## Model Architecture
 
-![alt text](results.png)
+Our model utilizes the following configuration:
 
-![alt text](checkmate.png)
+![Model Parameters](params.png)
 
+## Performance Test: Smothered Mate
+
+We tested the model's tactical vision with a challenging position requiring precise calculation:
+
+![Test Position](position.png)
+
+**The Critical Move**: Black to play and deliver checkmate in one move.
+
+The position features a classic "smothered mate" pattern—a tactical motif that requires recognizing how the king's own pieces restrict its escape squares. The winning move is **Ne2#**, a knight check that delivers immediate checkmate.
+
+### Results
+
+Our model successfully identified the checkmate:
+
+![Model Output](results.png)
+
+![Checkmate Position](checkmate.png)
+
+The model's ability to find this non-obvious tactical blow demonstrates its strong pattern recognition and evaluation capabilities, particularly for complex mating attacks.
+
+## Training Details
+
+- **Dataset**: 2 million chess games in PGN format
+- **Architecture**: Transformer-based neural network
+- **Task**: Move prediction and position evaluation
+
+---
+
+*This project demonstrates the practical application of transformer architectures to chess engine development, achieving strong tactical performance through modern deep learning techniques.*
 
