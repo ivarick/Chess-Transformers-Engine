@@ -1,4 +1,4 @@
-Chess engine using the transformers architecture trained on 2 million games (PGN files).
+#Chess engine using the transformers architecture trained on 2 million games (PGN files).
 
 Today's chess engines are shifting to the transformers-based models, we witness that clearly in Leela Chess Zero that switched from residual networks to using a transformer-based architecture.
 
