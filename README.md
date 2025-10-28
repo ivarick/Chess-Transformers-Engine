@@ -11,3 +11,14 @@ Now in our used model we have:
 
 ![alt text](params.png)
 
+When testing the model on finding the best move on the given position:
+
+![alt text](position.png)
+
+Which was a checkmate in one move for black (Ne2#). Chess players recognize this tricky move and it is called a "smothered mate". And yet, our model has successfully found it.
+
+![alt text](results.png)
+
+![alt text](checkmate.png)
+
+
