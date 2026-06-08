@@ -1,70 +1,120 @@
-# **Chess Transformer Engine**
-### A transformer-based chess engine trained on 2 million PGN games
+# Chess Transformer Engine
 
-## Overview
+A PyTorch research project for evaluating chess positions with a compact
+transformer encoder. Positions are encoded as 22 feature planes and trained
+against game outcomes from PGN files.
 
-Modern chess engines are rapidly transitioning from convolutional neural networks (CNNs) to transformer-based architectures. This shift is exemplified by Leela Chess Zero's adoption of transformers, driven by fundamental architectural advantages for chess position evaluation.
+This is not a Stockfish replacement. It is a neural evaluation experiment with
+clean training and inference entry points, checkpoint support, and a small
+alpha-beta search wrapper for move ranking.
 
-## Why Transformers Over CNNs?
+## Highlights
 
-### Limitations of CNNs in Chess
+- Transformer-based evaluator for `22 x 8 x 8` board tensors
+- Shared feature extraction for training and inference
+- PGN dataset indexing without loading every board into memory
+- Checkpoint resume and best-model saving
+- CLI-based inference from any FEN string
+- Smoke tests for feature encoding and move search
 
-CNNs process information through local convolution operations, which inherently limits their ability to capture global board patterns:
+## Model
 
-- **Local Pattern Recognition**: Even with deep networks and residual connections, CNNs primarily identify local piece configurations
-- **Limited Spatial Awareness**: Understanding relationships between distant pieces requires information to propagate through numerous layers, creating a computational bottleneck
-- **Sequential Information Flow**: Long-range tactical patterns suffer from the layered nature of convolutional processing
+The model embeds the chess board with two convolutional layers, flattens the
+resulting `4 x 4` grid into 16 tokens, prepends a class token, and processes the
+sequence with transformer encoder blocks. The output is trained as a
+white-result score:
 
-### Advantages of Transformers
+- `1.0`: White win
+- `0.5`: Draw
+- `0.0`: Black win
 
-Transformers revolutionize chess position evaluation through their self-attention mechanism:
+![Model parameters](params.png)
 
-- **Global Board Vision**: Every square can directly attend to every other square in a single layer, enabling immediate awareness of the entire position
-- **Superior Long-Range Dependencies**: Chess tactics and strategies frequently involve distant piece coordination—transformers naturally excel at modeling these relationships
-- **Parallel Processing**: Multi-head attention allows simultaneous evaluation of multiple strategic patterns
+## Setup
 
-### The Trade-off
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
 
-Transformers come with increased computational requirements:
-- Higher memory consumption
-- Greater processing power demands
-- Larger training datasets needed
+On Linux or macOS, activate with `source .venv/bin/activate`.
 
-However, for competitive chess engines, these costs are justified by the substantial gains in positional understanding and tactical accuracy.
+## Training
 
-## Model Architecture
+Large PGN files and checkpoints are intentionally ignored by Git. Put your PGN
+files in the project folder or pass absolute paths.
 
-Our model utilizes the following configuration:
+```bash
+python train.py lichess_db_standard_rated_2014-08.pgn ^
+  --epochs 10 ^
+  --batch-size 32 ^
+  --learning-rate 1e-5 ^
+  --checkpoint checkpoints/ultron.pth ^
+  --best-checkpoint checkpoints/ultron_best.pth
+```
 
-![Model Parameters](params.png)
+Useful options:
 
-## Performance Test: Smothered Mate
+- `--max-games-per-file`: limit indexing for quick experiments
+- `--num-workers`: enable DataLoader workers
+- `--device cpu|cuda|auto`: choose where training runs
+- `--no-resume`: start fresh even if a checkpoint exists
 
-We tested the model's tactical vision with a challenging position requiring precise calculation:
+## Inference
 
-![Test Position](position.png)
+Run a search from a FEN position using a trained checkpoint:
 
-**The Critical Move**: Black to play and deliver checkmate in one move.
+```bash
+python inference.py ^
+  --checkpoint checkpoints/ultron_best.pth ^
+  --fen "2r1k2r/1p6/p3b3/q2pNp1p/1b1n1P2/P7/1PBN1PP1/1QKR3R b k - 3 20" ^
+  --depth 2 ^
+  --top-k 3
+```
 
-The position features a classic "smothered mate" pattern—a tactical motif that requires recognizing how the king's own pieces restrict its escape squares. The winning move is **Ne2#**, a knight check that delivers immediate checkmate.
+If no checkpoint is supplied, the script still runs with random weights for a
+smoke test, but the move rankings are not meaningful.
 
-### Results
+The old misspelled entry point, `infrence.py`, remains as a compatibility shim.
+New scripts should use `inference.py`.
 
-Our model successfully identified the checkmate:
+## Example: Smothered Mate
 
-![Model Output](results.png)
+The repository includes a tactical example where Black can deliver a smothered
+mate.
 
-![Checkmate Position](checkmate.png)
+![Test position](position.png)
 
-The model's ability to find this non-obvious tactical blow demonstrates its strong pattern recognition and evaluation capabilities, particularly for complex mating attacks.
+The expected move is `Ne2#`.
 
-## Training Details
+![Model output](results.png)
 
-- **Dataset**: 2 million chess games in PGN format
-- **Architecture**: Transformer-based neural network
-- **Task**: Move prediction and position evaluation
+![Checkmate position](checkmate.png)
 
----
+## Tests
 
-*This project demonstrates the practical application of transformer architectures to chess engine development, achieving strong tactical performance through modern deep learning techniques.*
+```bash
+pytest
+```
 
+The tests cover the board tensor contract and a lightweight inference smoke
+path. They are designed to run without a PGN dataset or trained checkpoint.
+
+## Repository Layout
+
+```text
+features.py     Shared board-to-tensor encoding
+dataloader.py   PGN indexing dataset
+model.py        Transformer evaluator
+train.py        Training CLI
+inference.py    Inference and search CLI
+infrence.py     Backwards-compatible shim
+tests/          Smoke tests
+```
+
+## Notes
+
+Model strength depends on the quality and scale of the training data, training
+time, checkpoint selection, and search depth. Treat reported tactical examples
+as demonstrations, not as benchmark claims.

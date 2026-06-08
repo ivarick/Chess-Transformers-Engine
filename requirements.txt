@@ -4,3 +4,5 @@ python-chess>=1.999
 matplotlib>=3.7.0
 psutil>=5.9.0
 tqdm>=4.65.0
+pytest>=8.0.0
+ruff>=0.8.0
